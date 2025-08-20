@@ -1,0 +1,6 @@
+{
+    "markdown.validate.enabled": true,
+    "files.associations": {
+        "math.h": "c"
+    }
+}
