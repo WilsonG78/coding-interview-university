@@ -1,21 +1,5 @@
-#include <stdlib.h>
-#include <math.h>
+#include<set.h>
 #define max(a,b) ((a) > (b) ? (a) : (b))
-
-typedef struct Node
-{
-    int val;
-    struct Node *left;
-    struct Node *right;
-    struct Node *parent;
-    int height;
-}Node;
-
-typedef struct set
-{
-    Node *root;
-
-}set;
 
 //private
 Node* init_node( int val , Node *left , Node *right,Node *parent){
@@ -53,50 +37,7 @@ void update_height_upwards(Node *node) {
         node = node->parent;
     }
 }
-//private
-void balance_node(set *tree , Node *node){
-    int left_h = node->left ? node->left->height : 0;
-    int right_h = node->right ? node->right->height : 0;
 
-    if(abs(left_h - right_h) <2 ){
-        return;
-    }
-    if(left_h - right_h >1){
-        int left_right_h = node->left->right ? node->left->right->height : 0;
-        int left_left_h = node->left->left ? node->left->left->height : 0;
-
-        if(left_right_h > left_left_h){
-           left_rotate(tree,node->left);
-        }
-        else{
-            right_rotate(tree,node);
-        }
-        
-    }
-    else{
-        int right_left_h = node->right->left ? node->right->left->height : 0;
-        int right_right_h = node->right->right ? node->right->right->height : 0;
-
-        if(right_left_h > right_right_h){
-            right_rotate(tree,node->right);
-        }
-        else{
-            left_rotate(tree,node);
-        }  
-    }
-
-}
-
-//private
-void balance_tree(set *tree, Node *node){
-    while (node)
-    {
-        update_height(node);
-        balance_node(tree,node);
-        node = node->parent;
-    }
-    
-}
 //private
 void right_rotate(set *tree ,Node *node){
     
@@ -149,8 +90,55 @@ void left_rotate(set *tree ,Node *node){
     update_height(node);
     update_height(new_root);
 }
+
+
 //private
-Node *next_node_in_post_order(set *tree , Node *node){
+void balance_node(set *tree , Node *node){
+    int left_h = node->left ? node->left->height : 0;
+    int right_h = node->right ? node->right->height : 0;
+
+    if(abs(left_h - right_h) <2 ){
+        return;
+    }
+    if(left_h - right_h >1){
+        int left_right_h = node->left->right ? node->left->right->height : 0;
+        int left_left_h = node->left->left ? node->left->left->height : 0;
+
+        if(left_right_h > left_left_h){
+           left_rotate(tree,node->left);
+        }
+        else{
+            right_rotate(tree,node);
+        }
+        
+    }
+    else{
+        int right_left_h = node->right->left ? node->right->left->height : 0;
+        int right_right_h = node->right->right ? node->right->right->height : 0;
+
+        if(right_left_h > right_right_h){
+            right_rotate(tree,node->right);
+        }
+        else{
+            left_rotate(tree,node);
+        }  
+    }
+
+}
+
+//private
+void balance_tree(set *tree, Node *node){
+    while (node)
+    {
+        update_height(node);
+        balance_node(tree,node);
+        node = node->parent;
+    }
+    
+}
+
+//private
+Node *inorderd_successor( Node *node){
     if(node->right){
         Node *curr = node->right;
         while(curr->left){
@@ -158,11 +146,18 @@ Node *next_node_in_post_order(set *tree , Node *node){
         }
         return curr;
     }
+    Node *p = node->parent;
+    Node *curr =node;
+    while(p && curr == p->right){
+        curr = p;
+        p = p->parent;
+    }
+    return p;
 }
 
 
 //public
-void set_insert(set *tree,int val){
+void insert_set(set *tree,int val){
     Node *curr = tree->root;
     Node *new_node = init_node(val,NULL,NULL,NULL);
     if(!curr){
@@ -174,14 +169,14 @@ void set_insert(set *tree,int val){
             if(!curr->right){
                 new_node->parent = curr;
                 curr->right = new_node;
-                curr = NULL;
+                break;
             }
         }
         else if(curr->val >val){
             if(!curr->left){
                 new_node->parent = curr;
                 curr->left = new_node;
-                curr = NULL;
+                break;
             }
         }
         else{
@@ -191,8 +186,16 @@ void set_insert(set *tree,int val){
     }
     balance_tree(tree,new_node);
 }
+Node *min_in_subtree(Node *node){
+    Node *curr = node;
+    while(curr && curr->left){
+        curr = curr->left;
+    }
+    return curr;
+}
+
 //public
-int set_contains(set *tree , int val){
+int contains_set(set *tree , int val){
     Node *curr = tree->root;
     while(curr){
         if(curr->val == val){
@@ -210,7 +213,7 @@ int set_contains(set *tree , int val){
 
 //public
 //TODO
-void set_delete(set *tree , int val){
+void delete_set(set *tree , int val){
     Node *curr = tree->root;
     while(curr){
         if(curr->val  > val){
@@ -223,15 +226,65 @@ void set_delete(set *tree , int val){
             break;
         }
     }
-    if(curr){
-        if(curr->right && curr->left){
-            Node *post_order = next_node_in_post_order(tree,curr);
-            curr->val = post_order->val;
-            if(post_order->parent->left == post_order){
-                post_order->right = post_order->parent->left;
-                post_order->right->parent = post_order->parent;
-                free(post_order);
-            }
+    if(!curr) return;
+
+    //case one
+    Node *node_to_rebalance = NULL;
+    if(!curr->right && !curr->left){
+        node_to_rebalance = curr->parent;
+        if(curr->parent){
+            if(curr->parent->left == curr) curr->parent->left = NULL;
+            else curr->parent->right =NULL;
+        } 
+        else{
+            tree->root = NULL;
         }
+        free(curr);
     }
+    else if(!curr->left || !curr->right){
+        Node *child = curr->left ? curr->left : curr->right;
+        node_to_rebalance = curr->parent;
+        if(curr->parent){
+            if (curr->parent->left == curr) curr->parent->left = child;
+            else curr->parent->right = child;
+        } else {
+            tree->root = child;
+        }
+        child->parent = curr->parent;
+        free(curr);
+    }
+    else{
+        Node *succ = min_in_subtree(curr->right);
+        curr->val = succ->val;
+        Node *child = succ->right;
+        node_to_rebalance = succ->parent;
+        if (succ->parent->left == succ) succ->parent->left = child;
+        else succ->parent->right = child;
+        if (child) child->parent = succ->parent;
+        free(succ);
+    }
+    if(node_to_rebalance){
+        balance_tree(tree,node_to_rebalance);
+    }
+}
+
+
+//public
+void init_set(set *tree) {
+    tree->root = NULL;
+}
+
+//private
+void free_subtree(Node *node) {
+    if (node) {
+        free_subtree(node->left);
+        free_subtree(node->right);
+        free(node);
+    }
+}
+
+//public
+void free_set(set *tree) {
+    free_subtree(tree->root);
+    tree->root = NULL;
 }

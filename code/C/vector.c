@@ -1,14 +1,6 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include<vector.h>
 
-
-typedef struct Vector
-{
-    int size;
-    int capacity;
-    int *data;
-} Vector;
-
+//public
 void init_vector(Vector *vector, int init_capacity){
     if(vector->data) return; 
     if(init_capacity <= 0) return;
@@ -17,7 +9,7 @@ void init_vector(Vector *vector, int init_capacity){
     vector->data = (int)malloc(init_capacity);
 }
 
-
+//public
 void push(Vector *vector,int num){
     if(vector->capacity == vector->size){
         vector->capacity = 2 * vector->size;
@@ -26,26 +18,26 @@ void push(Vector *vector,int num){
     vector->data[vector->size] = num;
     vector->size += 1;
 }
-
+//public
 int size(Vector *vector){
     return vector->size;
 }
-
+//public
 int capacity(Vector *vector){
     return vector->capacity;
 }
-
+//public
 int is_empty(Vector *vector){
     return vector->size == 0;
 }
-
+//public
 int at(Vector *vector, int index){
     if(index >= vector->size){
         return -1;
     }
     return vector->data[index];
 }
-
+//public
 void insert(Vector *vector,int index, int iteam){
     if( index  > vector->size){
         return;
@@ -65,7 +57,7 @@ void insert(Vector *vector,int index, int iteam){
     }
 
 }
-
+//public
 void prepend(Vector *vector, int iteam){
     if(vector->capacity == vector->size){
         vector->capacity *= 2;
@@ -80,7 +72,7 @@ void prepend(Vector *vector, int iteam){
         tmp = tmp2;
     }
 }
-
+//public
 int pop(Vector *vector){
     if(!vector) return NULL;
     int res = vector->data[vector->size];
@@ -91,7 +83,7 @@ int pop(Vector *vector){
     }
     return res;
 }
-
+//public
 void delete(Vector *vector, int index){
     if(index >= vector->size) return ;
     int tmp , tmp2 = vector->data[vector->size-1];
@@ -106,7 +98,7 @@ void delete(Vector *vector, int index){
         vector->data = (int)realloc(vector->data,vector->capacity);
     }
 }
-
+//public
 void remove(Vector *vector,int iteam){
     int i =0 ;
     int p = 0;
@@ -123,14 +115,14 @@ void remove(Vector *vector,int iteam){
         vector->data = (int)realloc(vector->data,vector->capacity);
     }
 }
-
+//public
 int find(Vector *vector, int iteam){
     for(int i =0 ; i < vector->size ; i++){
         if(vector->data[i] == iteam) return i;
     }
     return -1;
 }
-
+//public
 void resize(Vector *vector, int new_capacity){
     if(vector->capacity == vector->size){
         if(new_capacity <= vector->capacity){
